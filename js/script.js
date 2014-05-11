@@ -15,7 +15,7 @@ var myLat, myLong;
 function getDronestreamData() {
 
     // var URL = "http://api.dronestre.am/data";
-    var URL = "data.json";
+    var URL = "data/data.json";
 
     $.ajax({
         url: URL,
