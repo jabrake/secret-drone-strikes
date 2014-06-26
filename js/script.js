@@ -1,5 +1,3 @@
-//MIN DISTANCE = 11,212,867.748258118
-//MAX DISTANCE = 12,588,898.473025825
 var w = $(window).width()/2;
 var h = $(window).height();
 var DCLat = 38.897876;
@@ -9,8 +7,7 @@ var droneData = [];
 var flag = null;
 var sortDistance = null;
 var initialLocation = undefined;
-var gotLocation = false;
-var myLat, myLong;
+var myLat, myLong, vis;
 
 function getDronestreamData() {
 
@@ -32,11 +29,14 @@ function getDronestreamData() {
 
     }).then(function() {
 
-        calculateDistances();
+        $.when(calculateDistances()).done(animateVis());
     });
 }
 
 function calculateDistances() {
+
+    // $("#container").fadeOut(400);
+    $("#container").css('visibility', 'hidden');
 
     for (var i = 0; i < droneData.length; i++) {
 
@@ -51,8 +51,6 @@ function calculateDistances() {
         droneData[i].hoverCounter = 0;
     }
 
-    console.log(droneData);
-
     var sortedDrones = _.sortBy(droneData, 'distance');
       
     var minDistance = sortedDrones[0].distance;
@@ -66,27 +64,16 @@ function calculateDistances() {
 
     var dataScale = d3.scale.linear()
         .domain([minDistance, maxDistance])
-        .range([50, 400]);
+        .range([50, 300]);
 
-     vis = d3.select("body")
+    vis = d3.select("body")
         .append("svg")
         .attr('width', w)
         .attr('height', h)
         .attr('id', 'chart');
 
-    var circleContainer = d3.select("body")
-        .append("svg")
-        .attr("width", w*2)
-        .attr("height", h)
-        .attr("id", "circle");
-
-    var circle = circleContainer.append("circle")
-        .attr("cx", w*1.6)
-        .attr("cy", h/2)
-        .attr("r", 49);
-
     var arc = d3.svg.arc()
-        .innerRadius(50)
+        .innerRadius(30)
         .outerRadius(function (d) {
             return dataScale(d.distance);
         })
@@ -98,15 +85,21 @@ function calculateDistances() {
             return cScale(adding);
         });
 
+    var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
     vis.selectAll("path")
     .data(droneData)
     .enter()
     .append("path")
     .on("mouseover", function (d) {
 
-        $("#infoDisplay").html(function () {
+        div.transition()
+            .duration(200)
+            .style("opacity", 1.0);
 
-            //Format latitude and longitude
+        div.html(function() {
             var strikeLat = Number(d.lat);
             var strikeLon = Number(d.lon);
             var strikeLatShort = strikeLat.toPrecision(8);
@@ -143,80 +136,91 @@ function calculateDistances() {
             }
 
             //var display = "<h2>Distance: " + distanceComma + " meters from you" + "<br>Location: " + location + "<br>Casualties: " + deaths + "<br>Date: " + dateFormat + "</h2><br><img class='flag' src=" + flag + "></img>";
-            var display = "<h2>On " + displayDate + ", a drone struck a location in " + d.country + " that is " + distanceComma + " meters away from you. The number of casualties was " + deaths + ". <a target='_blank' href='" + link + "'>Read more.</a></h2><br><img class='flag' src=" + flag + "></img>";
+            var display = "Date: " + displayDate + "<br>Country: " + d.country + "<br>Distance: " + distanceComma + " meters away from you<br>Casualties: " + deaths;
 
             return display;
-
-        }).hide().fadeIn("fast");
+        })
+            .style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY - 65) + "px");
 
         d.hoverCounter++;
 
         d3.select(this)
         .transition()
         .duration(250)
-        .style("fill", function (d) {
-            if (d.hoverCounter < 2) {
-                return "black";
-            } else if (d.hoverCounter >= 2) {
-                return "red";
-            }
-        });
+        .style("fill", "red");
     })
+
     .on("mouseout", function (d) {
         d3.select(this)
         .transition()
         .duration(500)
         .style("fill", "black");
+
+        div.transition()
+            .duration(500)
+            .style("opacity", 0);
     })
     .attr("d", arc)
     .style("fill", "#eee")
+    .style("cursor", "pointer")
     .attr("transform", "translate(" + w*0.5 + ", " + h*0.5 + ")");
 
 }
 
-// sortDistance = function() {
-//     vis.selectAll("path")
-//         .sort(function(a, b) {
-//             return d.distance.ascending(a, b);
-//         })
-//         .transition()
-//         .duration(1000);
-// }
+function animateVis() {
 
-//Get geolocation
-if(navigator.geolocation) {
+    vis.selectAll("path")
+    .transition()
+    .duration(500)
+    .style("fill", "black");
 
-    browserSupportFlag = true;
-
-    navigator.geolocation.getCurrentPosition(function(position) {
-
-        initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-
-        myLat = initialLocation.k;
-        myLong = initialLocation.A;
-
-        var myLatShort = myLat.toPrecision(8);
-        var myLongShort = myLong.toPrecision(8);
-
-        var myLocation = myLatShort + "°,<br>" + myLongShort + "°";
-
-        // $("#myLocation").html(myLocation);
-
-        gotLocation = true;
-
-        getDronestreamData();
-
-    },
-
-    function() {
-        handleNoGeolocation(browserSupportFlag);
-    });
+    setTimeout(function() {
+        vis.selectAll("path")
+        .transition()
+        .duration(500)
+        .style("fill", "black");
+        // .style("fill", "#eee");
+    }, 500);
 }
 
-//If browser doesn't support geolocation
-else {
-    browserSupportFlag = false;
-    handleNoGeolocation(browserSupportFlag);
+function getLocation() {
+
+    //Get geolocation
+    if(navigator.geolocation) {
+
+        $("#container").html("Calculating distances between you and drone strikes...");
+
+        browserSupportFlag = true;
+
+        navigator.geolocation.getCurrentPosition(function(position) {
+
+            initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+            myLat = initialLocation.k;
+            myLong = initialLocation.A;
+
+            var myLatShort = myLat.toPrecision(8);
+            var myLongShort = myLong.toPrecision(8);
+
+            var myLocation = myLatShort + "°,<br>" + myLongShort + "°";
+
+            // $("#myLocation").html(myLocation);
+            getDronestreamData();
+
+        },
+
+        function() {
+            handleNoGeolocation(browserSupportFlag);
+        });
+    }
+
+
+    //If browser doesn't support geolocation
+    else {
+        browserSupportFlag = false;
+        handleNoGeolocation(browserSupportFlag);
+    }
 }
 
 function handleNoGeolocation(errorFlag) {
@@ -230,8 +234,9 @@ function handleNoGeolocation(errorFlag) {
 
 $(document).ready(function() {
 
-    // $("#sortDistance").on("click", function() {
-    //     sortDistance();
-    // });
 
+    getLocation();
+
+    $("h1").click(function() {
+    });
 });
