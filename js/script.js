@@ -29,14 +29,18 @@ function getDronestreamData() {
 
     }).then(function() {
 
-        $.when(calculateDistances()).done(animateVis());
+        $.when(calculateDistances()).done(function() {
+            animateVis();
+            $("#spinner").hide();
+            console.log("spinner hidden!");
+        });
     });
 }
 
 function calculateDistances() {
 
     // $("#container").fadeOut(400);
-    $("#container").css('visibility', 'hidden');
+    // $("#container").css('visibility', 'hidden');
 
     for (var i = 0; i < droneData.length; i++) {
 
@@ -48,7 +52,9 @@ function calculateDistances() {
         var calcDistance = google.maps.geometry.spherical.computeDistanceBetween(initialLocation, strikeLatLon);
 
         droneData[i].distance = calcDistance;
-        droneData[i].hoverCounter = 0;
+        // droneData[i].hoverCounter = 0;
+
+        var hoverCounter = 0;
     }
 
     var sortedDrones = _.sortBy(droneData, 'distance');
@@ -66,7 +72,7 @@ function calculateDistances() {
         .domain([minDistance, maxDistance])
         .range([50, 300]);
 
-    vis = d3.select("body")
+    vis = d3.select(".middle")
         .append("svg")
         .attr('width', w)
         .attr('height', h)
@@ -125,6 +131,8 @@ function calculateDistances() {
             //Link
             var link = d.bij_link;
 
+            console.log(link);
+
             //Determine country to dynamically select flag
             // var country = d.country;
             if (d.country == "Pakistan") {
@@ -143,12 +151,30 @@ function calculateDistances() {
             .style("left", (d3.event.pageX) + "px")
             .style("top", (d3.event.pageY - 65) + "px");
 
-        d.hoverCounter++;
+        // d.hoverCounter++;
 
         d3.select(this)
         .transition()
         .duration(250)
         .style("fill", "red");
+
+        hoverCounter++;
+        console.log(hoverCounter);
+
+        if (hoverCounter > 10) {
+            displayContent($("#left-bar-2"));
+        }
+
+        if (hoverCounter > 100) {
+            displayContent($("#left-bar-3"));
+        }
+
+        if (hoverCounter > 100) {
+            displayContent($("#left-bar-4"));
+            displayContent($("#pakistan"));
+            displayContent($("#somalia"));
+            displayContent($("#yemen"));
+        }
     })
 
     .on("mouseout", function (d) {
@@ -179,9 +205,21 @@ function animateVis() {
         vis.selectAll("path")
         .transition()
         .duration(500)
-        .style("fill", "black");
-        // .style("fill", "#eee");
+        .style("fill", "#eee");
     }, 500);
+
+    setTimeout(function() {
+        hideContainer();
+    }, 1000);
+}
+
+function hideContainer() {
+    $("#top-container").addClass("hidden");
+    displayContent($("#left-bar-1"));
+}
+
+function displayContent(textToDisplay) {
+    textToDisplay.addClass("showing");
 }
 
 function getLocation() {
@@ -189,7 +227,8 @@ function getLocation() {
     //Get geolocation
     if(navigator.geolocation) {
 
-        $("#container").html("Calculating distances between you and drone strikes...");
+        $("#top-container").html("Calculating distances between you and drone strikes...");
+        $("#spinner").show();
 
         browserSupportFlag = true;
 
@@ -197,8 +236,10 @@ function getLocation() {
 
             initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 
+            // console.log(initialLocation);
             myLat = initialLocation.k;
-            myLong = initialLocation.A;
+            myLong = initialLocation.B;
+            console.log(myLong);
 
             var myLatShort = myLat.toPrecision(8);
             var myLongShort = myLong.toPrecision(8);
@@ -234,9 +275,6 @@ function handleNoGeolocation(errorFlag) {
 
 $(document).ready(function() {
 
-
     getLocation();
 
-    $("h1").click(function() {
-    });
 });

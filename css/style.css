@@ -14,28 +14,128 @@ h1 {
 	margin-left: 5%;
 	width: 26%;
 	font-size: 2em;
-	border: 2px solid;
 }
 
-#container {
+.left {
+	float: left;
+	padding: 0% 2% 0% 0%;
+	width: 25%;
+	font-size: 2.6vmin;
+}
+
+.middle {
+/*	margin-left: 10%;
+	margin-right: 10%;*/
+	height: 100%;
+}
+
+.right {
+	float: right;
+	padding: 0% 0% 0% 2%;
+	width: 25%;
+	font-size: 2vmin;
+}
+
+#top-container {
+	font-size: 2.3vmin;
 	text-align: center;
+	visibility: visible;
+	-webkit-transition-property: all;
+	-webkit-transition-duration: 1s;
+}
+
+#top-container.hidden {
+	opacity: 0;
+	visibility: hidden;
+}
+
+#left-bar-1 {
+	width: 100%;
+	margin: 30% 0% 0% 5%;
+	clear: both;
+	visibility: hidden;
+	opacity: 0;
+	-webkit-transition-property: all;
+	-webkit-transition-duration: 1s;
+}
+
+#left-bar-2, #left-bar-3, #left-bar-4 {
+	width: 100%;
+	margin: 20% 0% 0% 5%;
+	clear: both;
+	visibility: hidden;
+	opacity: 0;
+	-webkit-transition-property: all;
+	-webkit-transition-duration: 1s;
+}
+
+#left-bar-1.showing, #left-bar-2.showing, #left-bar-3.showing, #left-bar-4.showing {
+	visibility: visible;
+	opacity: 1;
+}
+
+.spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-left: -50px; /* half width of the spinner gif */
+    margin-top: -50px; /* half height of the spinner gif */
+    text-align: center;
+    z-index: 4;
+    overflow: auto;
+    width: 100px; /* width of the spinner gif */
+    height: 102px; /*hight of the spinner gif +2px to fix IE8 issue */
 }
 
 #chart {
-	width: 100%;
+	width: 40%;
 	height: 100%;
-	margin-left: 25%;
 	position: absolute;
 }
 
 #source {
 	position: absolute;
-	margin: 50% 0 0 5%;
+	margin: 50% 0 0 1%;
+	font-size: 2vmin;
+}
+
+#pakistan {
+	visibility: hidden;
+	opacity: 0;
+	height: auto;
+	margin-top: 30%;
+	clear: both;
+	overflow: hidden;
+	-webkit-transition-property: all;
+	-webkit-transition-duration: 1s;
+}
+
+#yemen, #somalia {
+	visibility: hidden;
+	opacity: 0;
+	height: auto;
+	margin-top: 20%;
+	clear: both;
+	overflow: hidden;
+	-webkit-transition-property: all;
+	-webkit-transition-duration: 1s;
+}
+
+#yemen.showing, #pakistan.showing, #somalia.showing {
+	visibility: visible;
+	opacity: 1;
 }
 
 .flag {
-	width: 50%;
-	height: 50%;
+	width: 40%;
+	height: 40%;
+	float: left;
+	margin-right: 5%;
+}
+
+#pakistan-links, #yemen-links, #somalia-links {
+	height: 40%;
+	float: left;
 }
 
 div.tooltip {
